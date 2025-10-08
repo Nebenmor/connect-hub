@@ -1,6 +1,16 @@
-# Abbey FullStack Challenge
+# ConnectHub
 
-A full-stack social connection application built with React, TypeScript, Node.js, Express, and PostgreSQL.
+A modern professional networking platform built with React, TypeScript, Node.js, and PostgreSQL.
+
+## What is ConnectHub?
+
+ConnectHub is a professional connection platform that allows users to:
+- Discover other professionals
+- Send and manage connection requests
+- Build their professional network
+- Maintain their professional profile
+
+Think LinkedIn's connection feature, but as a standalone application.
 
 ## Features
 
@@ -13,7 +23,7 @@ A full-stack social connection application built with React, TypeScript, Node.js
 ## Tech Stack
 
 ### Frontend
-- React 18 with TypeScript
+- React 19 with TypeScript
 - React Router for navigation
 - Tailwind CSS for styling
 - Axios for API calls
