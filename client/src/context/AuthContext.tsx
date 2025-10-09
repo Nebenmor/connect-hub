@@ -1,52 +1,12 @@
-import { useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '../api/client';
+import { createContext } from 'react';
 import { User } from '../types';
-import { AuthContext } from './authContext';
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: () => void;
+  logout: () => void;
+  refreshUser: () => Promise<void>;
+}
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const currentUser = await authAPI.getCurrentUser();
-      setUser(currentUser);
-    } catch {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = () => {
-    window.location.href = authAPI.getGoogleAuthUrl();
-  };
-
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-      setUser(null);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  const refreshUser = async () => {
-    try {
-      const currentUser = await authAPI.getCurrentUser();
-      setUser(currentUser);
-    } catch (error) {
-      console.error('Refresh user error:', error);
-    }
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
