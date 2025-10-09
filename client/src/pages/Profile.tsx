@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { usersAPI } from '../api/client';
 import Navbar from '../components/Navbar';
 import ProfileCard from '../components/ProfileCard';
