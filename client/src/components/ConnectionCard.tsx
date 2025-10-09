@@ -1,0 +1,68 @@
+import { Connection } from '../types';
+
+interface ConnectionCardProps {
+  connection: Connection;
+  onAccept?: (id: number) => void;
+  onReject?: (id: number) => void;
+  onRemove?: (id: number) => void;
+}
+
+const ConnectionCard = ({ connection, onAccept, onReject, onRemove }: ConnectionCardProps) => {
+  const { friend, status, is_sender } = connection;
+
+  return (
+    <div className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        {friend.avatar_url ? (
+          <img
+            src={friend.avatar_url}
+            alt={friend.name}
+            className="h-12 w-12 rounded-full"
+          />
+        ) : (
+          <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg font-bold">
+            {friend.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div>
+          <h3 className="font-semibold text-gray-900">{friend.name}</h3>
+          <p className="text-sm text-gray-600">{friend.email}</p>
+          {status === 'pending' && (
+            <span className="text-xs text-yellow-600">
+              {is_sender ? 'Request sent' : 'Pending approval'}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex space-x-2">
+        {status === 'pending' && !is_sender && onAccept && (
+          <button
+            onClick={() => onAccept(connection.id)}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+          >
+            Accept
+          </button>
+        )}
+        {status === 'pending' && !is_sender && onReject && (
+          <button
+            onClick={() => onReject(connection.id)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+          >
+            Reject
+          </button>
+        )}
+        {(status === 'accepted' || (status === 'pending' && is_sender)) && onRemove && (
+          <button
+            onClick={() => onRemove(connection.id)}
+            className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ConnectionCard;
