@@ -6,6 +6,7 @@ import { generateToken } from "../middleware/auth";
 import { User } from "../types";
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
 
 // Lazy initialization - only validate when passport strategy is actually used
 const initializeGoogleStrategy = () => {
@@ -15,16 +16,24 @@ const initializeGoogleStrategy = () => {
     );
   }
 
+  // FIX: Use full callback URL with domain
+  const callbackURL = `${SERVER_URL}/api/auth/google/callback`;
+
+  console.log('🔧 Initializing Google OAuth Strategy');
+  console.log('📍 Callback URL:', callbackURL);
+
   // Configure Google OAuth Strategy
   passport.use(
     new GoogleStrategy(
       {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: "/api/auth/google/callback",
+        callbackURL: callbackURL, // FIX: Full URL instead of relative path
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+          console.log('✓ Google OAuth callback received for:', profile.emails?.[0].value);
+          
           // Check if user exists
           const existingUser = await pool.query<User>(
             "SELECT * FROM users WHERE oauth_provider = $1 AND oauth_id = $2",
@@ -32,10 +41,12 @@ const initializeGoogleStrategy = () => {
           );
 
           if (existingUser.rows.length > 0) {
+            console.log('✓ Existing user found');
             return done(null, existingUser.rows[0]);
           }
 
           // Create new user
+          console.log('✓ Creating new user');
           const newUser = await pool.query<User>(
             `INSERT INTO users (email, name, avatar_url, oauth_provider, oauth_id) 
              VALUES ($1, $2, $3, $4, $5) 
@@ -51,6 +62,7 @@ const initializeGoogleStrategy = () => {
 
           done(null, newUser.rows[0]);
         } catch (error) {
+          console.error('❌ OAuth strategy error:', error);
           done(error as Error);
         }
       }
@@ -78,23 +90,30 @@ export const googleCallback = (req: Request, res: Response) => {
     { session: false },
     (err: Error, user: User) => {
       if (err || !user) {
-        console.error("OAuth error:", err);
+        console.error("❌ OAuth error:", err);
         return res.redirect(`${CLIENT_URL}/login?error=auth_failed`);
       }
 
       // Generate JWT token
       const token = generateToken(user.id, user.email);
 
-      // Set cookie
+      // FIX: Improved cookie settings for production
+      const isProduction = process.env.NODE_ENV === "production";
+      
       res.cookie("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: isProduction, // true in production
+        sameSite: isProduction ? "none" : "lax", // 'none' for cross-site in production
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        domain: isProduction ? undefined : undefined, // Let browser handle it
       });
 
       console.log("✓ OAuth successful for user:", user.email);
-      console.log("✓ Token cookie set");
+      console.log("✓ Token cookie set with settings:", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax"
+      });
 
       // Redirect to frontend
       res.redirect(`${CLIENT_URL}/dashboard`);
@@ -127,6 +146,10 @@ export const getCurrentUser = async (req: Request, res: Response) => {
  * Logout user
  */
 export const logout = (req: Request, res: Response) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
   res.json({ message: "Logged out successfully" });
 };
