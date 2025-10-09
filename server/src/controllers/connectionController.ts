@@ -10,14 +10,15 @@ export const getConnections = async (req: Request, res: Response) => {
     const currentUserId = req.user?.id;
 
     // Get connections where user is either sender or receiver
-    const result = await pool.query<ConnectionWithUser>(
+    // FIXED: Removed duplicate friend_id alias
+    const result = await pool.query(
       `SELECT 
         c.id, 
         c.user_id, 
         c.friend_id, 
         c.status, 
         c.created_at,
-        u.id as friend_id,
+        u.id as user_friend_id,
         u.email as friend_email,
         u.name as friend_name,
         u.avatar_url as friend_avatar_url
@@ -34,16 +35,16 @@ export const getConnections = async (req: Request, res: Response) => {
     );
 
     // Transform to include friend details
-    const connections = result.rows.map((row) => ({
+    const connections = result.rows.map((row: any) => ({
       id: row.id,
       status: row.status,
       created_at: row.created_at,
       is_sender: row.user_id === currentUserId,
       friend: {
-        id: row.friend_id,
-        email: (row as any).friend_email,
-        name: (row as any).friend_name,
-        avatar_url: (row as any).friend_avatar_url,
+        id: row.user_friend_id,
+        email: row.friend_email,
+        name: row.friend_name,
+        avatar_url: row.friend_avatar_url,
       },
     }));
 
