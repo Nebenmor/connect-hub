@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
 import passport from 'passport';
 
-// Load environment variables
+// Load environment variables FIRST - THIS WAS COMMENTED OUT!
 // dotenv.config();
 
 // Import routes
@@ -49,4 +49,5 @@ app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`✓ Client URL: ${CLIENT_URL}`);
+  console.log(`✓ Database: ${process.env.DATABASE_URL ? 'Connected' : 'NOT CONFIGURED'}`);
 });

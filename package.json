@@ -1,12 +1,17 @@
 {
-  "name": "connecthub",
+  "name": "abbey-challenge",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Abbey FullStack Engineer Challenge - Social Connection Application",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "start:server": "cd server && npm start",
+    "migrate": "cd server && npm run migrate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "keywords": ["fullstack", "react", "typescript", "postgresql", "oauth"],
+  "author": "Your Name",
+  "license": "MIT"
 }
