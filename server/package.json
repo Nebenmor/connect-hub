@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon --exec tsx -r dotenv/config src/index.ts",
+    "build": "tsc",
+    "start": "node -r dotenv/config dist/index.js",
+    "migrate": "psql -U postgres -d abbey_db -f migrations/init.sql"
   },
   "keywords": [],
   "author": "",
