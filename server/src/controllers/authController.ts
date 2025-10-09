@@ -7,54 +7,59 @@ import { User } from "../types";
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
-// Validate required environment variables
-if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-  throw new Error(
-    "Missing required OAuth environment variables: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET"
-  );
-}
+// Lazy initialization - only validate when passport strategy is actually used
+const initializeGoogleStrategy = () => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error(
+      "Missing required OAuth environment variables: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET"
+    );
+  }
 
-// Configure Google OAuth Strategy
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: "/api/auth/google/callback",
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Check if user exists
-        const existingUser = await pool.query<User>(
-          "SELECT * FROM users WHERE oauth_provider = $1 AND oauth_id = $2",
-          ["google", profile.id]
-        );
+  // Configure Google OAuth Strategy
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        callbackURL: "/api/auth/google/callback",
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Check if user exists
+          const existingUser = await pool.query<User>(
+            "SELECT * FROM users WHERE oauth_provider = $1 AND oauth_id = $2",
+            ["google", profile.id]
+          );
 
-        if (existingUser.rows.length > 0) {
-          return done(null, existingUser.rows[0]);
+          if (existingUser.rows.length > 0) {
+            return done(null, existingUser.rows[0]);
+          }
+
+          // Create new user
+          const newUser = await pool.query<User>(
+            `INSERT INTO users (email, name, avatar_url, oauth_provider, oauth_id) 
+             VALUES ($1, $2, $3, $4, $5) 
+             RETURNING *`,
+            [
+              profile.emails?.[0].value,
+              profile.displayName,
+              profile.photos?.[0].value,
+              "google",
+              profile.id,
+            ]
+          );
+
+          done(null, newUser.rows[0]);
+        } catch (error) {
+          done(error as Error);
         }
-
-        // Create new user
-        const newUser = await pool.query<User>(
-          `INSERT INTO users (email, name, avatar_url, oauth_provider, oauth_id) 
-           VALUES ($1, $2, $3, $4, $5) 
-           RETURNING *`,
-          [
-            profile.emails?.[0].value,
-            profile.displayName,
-            profile.photos?.[0].value,
-            "google",
-            profile.id,
-          ]
-        );
-
-        done(null, newUser.rows[0]);
-      } catch (error) {
-        done(error as Error);
       }
-    }
-  )
-);
+    )
+  );
+};
+
+// Initialize strategy immediately
+initializeGoogleStrategy();
 
 /**
  * Initiate Google OAuth flow
@@ -73,6 +78,7 @@ export const googleCallback = (req: Request, res: Response) => {
     { session: false },
     (err: Error, user: User) => {
       if (err || !user) {
+        console.error("OAuth error:", err);
         return res.redirect(`${CLIENT_URL}/login?error=auth_failed`);
       }
 
@@ -86,6 +92,9 @@ export const googleCallback = (req: Request, res: Response) => {
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
+
+      console.log("✓ OAuth successful for user:", user.email);
+      console.log("✓ Token cookie set");
 
       // Redirect to frontend
       res.redirect(`${CLIENT_URL}/dashboard`);
