@@ -50,7 +50,7 @@ const Dashboard = () => {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center pb-20 md:pb-0">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </>
@@ -60,7 +60,7 @@ const Dashboard = () => {
   return (
     <>
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {currentUser?.name}!
@@ -89,9 +89,9 @@ const Dashboard = () => {
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div>
-                  <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                  <p className="text-sm text-gray-600">{user.email}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">{user.name}</h3>
+                  <p className="text-sm text-gray-600 truncate">{user.email}</p>
                 </div>
               </div>
 
