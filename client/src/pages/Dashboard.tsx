@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { usersAPI, connectionsAPI } from '../api/client';
 import { User } from '../types';
 import Navbar from '../components/Navbar';
