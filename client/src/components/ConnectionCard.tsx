@@ -1,4 +1,4 @@
-import { Connection } from '../types';
+import { Connection } from "../types";
 
 interface ConnectionCardProps {
   connection: Connection;
@@ -7,7 +7,12 @@ interface ConnectionCardProps {
   onRemove?: (id: number) => void;
 }
 
-const ConnectionCard = ({ connection, onAccept, onReject, onRemove }: ConnectionCardProps) => {
+const ConnectionCard = ({
+  connection,
+  onAccept,
+  onReject,
+  onRemove,
+}: ConnectionCardProps) => {
   const { friend, status, is_sender } = connection;
 
   return (
@@ -28,16 +33,16 @@ const ConnectionCard = ({ connection, onAccept, onReject, onRemove }: Connection
           <div className="min-w-0">
             <h3 className="font-semibold text-gray-900">{friend.name}</h3>
             <p className="text-sm text-gray-600 truncate">{friend.email}</p>
-            {status === 'pending' && (
+            {status === "pending" && (
               <p className="text-xs text-gray-500 mt-1">
-                {is_sender ? 'Request sent' : 'Pending your response'}
+                {is_sender ? "Request sent" : "Pending your response"}
               </p>
             )}
           </div>
         </div>
 
         <div className="flex space-x-2 sm:flex-shrink-0">
-          {status === 'pending' && !is_sender && onAccept && onReject && (
+          {status === "pending" && !is_sender && onAccept && onReject && (
             <>
               <button
                 onClick={() => onAccept(connection.id)}
@@ -54,14 +59,15 @@ const ConnectionCard = ({ connection, onAccept, onReject, onRemove }: Connection
             </>
           )}
 
-          {((status === 'pending' && is_sender) || status === 'accepted') && onRemove && (
-            <button
-              onClick={() => onRemove(connection.id)}
-              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
-            >
-              {status === 'accepted' ? 'Remove' : 'Cancel'}
-            </button>
-          )}
+          {((status === "pending" && is_sender) || status === "accepted") &&
+            onRemove && (
+              <button
+                onClick={() => onRemove(connection.id)}
+                className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100"
+              >
+                {status === "accepted" ? "Remove" : "Cancel"}
+              </button>
+            )}
         </div>
       </div>
     </div>
