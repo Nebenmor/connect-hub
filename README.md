@@ -39,7 +39,7 @@ Think LinkedIn's connection feature, but as a standalone application.
 ## Project Structure
 
 ```
-abbey-challenge/
+connectHub/
 ├── client/           # React frontend
 │   ├── src/
 │   │   ├── api/      # API client
