@@ -10,7 +10,6 @@ const Connections = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'connections' | 'discover'>('connections');
-  const [connectionUserIds, setConnectionUserIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadData();
@@ -26,10 +25,6 @@ const Connections = () => {
       
       setConnections(connectionsData);
       setUsers(usersData);
-      
-      // FIX: Track ALL users who have connections (both as sender and receiver)
-      const connectedIds = new Set(connectionsData.map((c) => c.friend.id));
-      setConnectionUserIds(connectedIds);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
       setError(errorMessage);
@@ -41,9 +36,7 @@ const Connections = () => {
   const handleConnect = async (userId: number) => {
     try {
       await connectionsAPI.sendConnectionRequest(userId);
-      // FIX: Add the user to the connected set immediately
-      setConnectionUserIds((prev) => new Set(prev).add(userId));
-      loadData(); // Reload to update the connections list
+      loadData(); // Reload to update the lists
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send connection request';
       alert(errorMessage);
@@ -90,8 +83,11 @@ const Connections = () => {
   );
   const acceptedConnections = connections.filter((c) => c.status === 'accepted');
 
+  // Get IDs of all users with any connection (pending or accepted)
+  const connectedUserIds = new Set(connections.map((c) => c.friend.id));
+  
   // Filter users who don't have any connection
-  const availableUsers = users.filter((user) => !connectionUserIds.has(user.id));
+  const availableUsers = users.filter((user) => !connectedUserIds.has(user.id));
 
   if (loading) {
     return (
